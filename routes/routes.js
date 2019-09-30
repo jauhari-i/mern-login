@@ -92,10 +92,9 @@ app.get('/profile',(req,res) => {
     })
 })
 
-app.get('/todo',(req,res) => {
-    var date = new Date()
-    // console.log(date)
-    Todo.find({},(err,data) => {
+app.get('/todo/:id',(req,res) => {
+    var uid = req.params.id
+    Todo.find({userId: uid},(err,data) => {
         if(err){
             res.json({ error: err})
         }else if(data){
@@ -107,11 +106,11 @@ app.get('/todo',(req,res) => {
 })
 
 app.get('/faketodos',(req,res) => {
-    for(var i = 1; i < 10; i++){
+    for(var i = 1; i <= 10; i++){
         var newTodo = new Todo()
         newTodo.name = faker.name.firstName(1)
         newTodo.desk = faker.lorem.words(2)
-        newTodo.date = Date.now()
+        newTodo.date = moment().add(1,'h').format()
         newTodo.save()
     }
     res.send('faked')
@@ -121,12 +120,14 @@ app.post('/todo',(req,res) => {
     var name = req.body.todoname
     var deskripsi = req.body.deskripsi
     var date = req.body.datetime
+    var uid = req.body.uid
     if(!name){
         res.json({ error: 'Please fill all fields' })
     }else if(!deskripsi){
         var newTodo = new Todo()
         newTodo.name = name
         newTodo.date = date
+        newTodo.userId = uid
         newTodo.save((err) => {
             if(err){
                 res.json({ error: err})
@@ -139,6 +140,7 @@ app.post('/todo',(req,res) => {
         newTodo.name = name
         newTodo.desk = deskripsi
         newTodo.date = date
+        newTodo.userId = uid
         newTodo.save((err) => {
             if(err){
                 res.json({ error: err})
@@ -152,12 +154,37 @@ app.post('/todo',(req,res) => {
 app.put('/todo/:id',(req,res) => {
     var name = req.body.todoname
     var deskripsi = req.body.deskripsi
+    var date = req.body.datetime
     var id = req.params.id
-    Todo.findByIdAndUpdate(id,{name: name,desk: deskripsi},(err,hh) => {
+    Todo.findByIdAndUpdate(id,{name: name,desk: deskripsi,date: date},(err,hh) => {
         if(err){
             res.json({error: err})
         }else{
             res.json({ success: 'Data updated'})
+        }
+    })
+})
+
+app.get('/todo/cancel/:id',(req,res) => {
+    var id = req.params.id
+    Todo.findByIdAndUpdate(id,{done: 0,doneIn: null},(err,db) => {
+        if(err){
+            res.json({ error: err})
+        }else{
+            res.json({ success: 'Canceled by user'})
+        }
+    })
+})
+
+app.get('/todo/done/:id',(req,res) => {
+    var id = req.params.id
+    var today = moment().format()
+    Todo.findByIdAndUpdate(id,{done: 1,doneIn: today},(err,db) => {
+        if(err){
+            console.log(err)
+            res.json({ error: err })
+        }else{
+            res.json({ success: 'Done!!' })
         }
     })
 })
