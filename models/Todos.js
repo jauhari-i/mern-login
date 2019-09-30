@@ -9,9 +9,11 @@ const TodoSchema = new mongoose.Schema({
         type: String,
         required: false,
     },
-    time: {
+    done: {
+        type: String,
+    },
+    date: {
         type: Date,
-        default: Date.now
     }
 })
 

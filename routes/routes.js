@@ -3,8 +3,11 @@ const app = express.Router()
 const Todo = require('../models/Todos')
 const User = require('../models/User')
 const cors = require('cors')
+const moment = require('moment')
 const jwt = require('jsonwebtoken')
 const bcrypt = require('bcrypt')
+
+const faker = require('faker')
 
 app.use(cors())
 
@@ -90,6 +93,8 @@ app.get('/profile',(req,res) => {
 })
 
 app.get('/todo',(req,res) => {
+    var date = new Date()
+    // console.log(date)
     Todo.find({},(err,data) => {
         if(err){
             res.json({ error: err})
@@ -101,14 +106,27 @@ app.get('/todo',(req,res) => {
     })
 })
 
+app.get('/faketodos',(req,res) => {
+    for(var i = 1; i < 10; i++){
+        var newTodo = new Todo()
+        newTodo.name = faker.name.firstName(1)
+        newTodo.desk = faker.lorem.words(2)
+        newTodo.date = Date.now()
+        newTodo.save()
+    }
+    res.send('faked')
+})
+
 app.post('/todo',(req,res) => {
     var name = req.body.todoname
     var deskripsi = req.body.deskripsi
+    var date = req.body.datetime
     if(!name){
         res.json({ error: 'Please fill all fields' })
     }else if(!deskripsi){
         var newTodo = new Todo()
         newTodo.name = name
+        newTodo.date = date
         newTodo.save((err) => {
             if(err){
                 res.json({ error: err})
@@ -120,6 +138,7 @@ app.post('/todo',(req,res) => {
         var newTodo = new Todo()
         newTodo.name = name
         newTodo.desk = deskripsi
+        newTodo.date = date
         newTodo.save((err) => {
             if(err){
                 res.json({ error: err})
