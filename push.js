@@ -19,4 +19,4 @@ const makeCommit = n => {
         SimpleGit().add(FILE_PATH).commit(Date,{'--date': Date},makeCommit.bind(this, --n))
     })
 }
-makeCommit(2000)
+makeCommit(10)

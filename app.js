@@ -8,7 +8,7 @@ const port = 3002
 
 mongoose.Promise = global.Promise
 
-mongoose.connect('mongodb://localhost:27017/logreg',{ useNewUrlParser: true, useUnifiedTopology: true }, (err,db) => {
+mongoose.connect('mongodb://localhost:27017/toedoes',{ useNewUrlParser: true, useUnifiedTopology: true }, (err,db) => {
     if(err){
         return err
     }

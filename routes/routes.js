@@ -76,19 +76,48 @@ app.post('/login',(req,res) => {
     })
 })
 
-app.get('/profile',(req,res) => {
-    var decoded = jwt.verify(req.headers['authorization'], process.env.SCRET_KEY)
-
-    User.findOne({
-        _id: decoded._id
-    },(err,user) => {
+app.get('/profile/:id',(req,res) => {
+    var id = req.params.id
+    User.findById(id,(err,user) => {
         if(err){
-            res.send("error: " +err)
+            res.json({error: err})
         }else if(user){
             res.json(user)
         }else{
-            res.send("Usern Not Exist")
+            res.json({error: 'User Not Found'})
         }
+    })
+})
+
+app.put('/profile/edit/:id',(req,res) => {
+    var firstName = req.body.first_name
+    var lastName = req.body.last_name
+    var email = req.body.email
+    var id = req.params.id
+    User.findByIdAndUpdate(id,{
+        first_name: firstName,
+        last_name: lastName,
+        email: email
+    },(err,ok) => {
+        if(err){
+            res.json({error: err})
+        }else{
+            res.json({ success: 'Item updated!' })
+        }
+    })
+})
+
+app.put('/profile/password/:id',(req,res) => {
+    var id = req.params.id
+    var password = req.body.password
+    bcrypt.hash(password,10,(err,hash) => {
+        User.findByIdAndUpdate(id,{password: hash},(err,user) => {
+            if(err){
+                res.json(err)
+            }else{
+                res.json({success: true})
+            }
+        })
     })
 })
 
@@ -179,12 +208,28 @@ app.get('/todo/cancel/:id',(req,res) => {
 app.get('/todo/done/:id',(req,res) => {
     var id = req.params.id
     var today = moment().format()
-    Todo.findByIdAndUpdate(id,{done: 1,doneIn: today},(err,db) => {
+    // {done: 1,doneIn: today},
+    Todo.findById(id,(err,db) => {
         if(err){
-            console.log(err)
             res.json({ error: err })
         }else{
-            res.json({ success: 'Done!!' })
+            if(db.date > today){
+                Todo.findByIdAndUpdate(id,{done: 1,doneIn: today,dlate: 1},(err,db) => {
+                    if(err){
+                        res.json({error: err})
+                    }else{
+                        res.json({ success: 'Done' })
+                    }
+                })
+            }else{
+                Todo.findByIdAndUpdate(id,{done: 1,doneIn: today,dlate: 0},(err,db) => {
+                    if(err){
+                        res.json({error: err})
+                    }else{
+                        res.json({done: 'Success'})
+                    }
+                })
+            }
         }
     })
 })
@@ -196,6 +241,22 @@ app.delete('/todo/:id',(req,res) => {
             res.json({ error: err})
         }else{
             res.json({ success: 'Data Deleted' })
+        }
+    })
+})
+
+app.put('/check/password/:id',(req,res) => {
+    var id = req.params.id
+    var password = req.body.password
+    User.findById(id,(err,user) => {
+        if(err){
+            res.json(err)
+        }else{
+            if(bcrypt.compareSync(password,user.password)){
+                res.json({true: true})
+            }else{
+                res.json({wrong: true})
+            }
         }
     })
 })
